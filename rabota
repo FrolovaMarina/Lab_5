@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import linalg as LA
+from numpy import linalg as la
 import time
 try:
     K = int(input("Введите число K = "))
@@ -13,34 +13,24 @@ try:
     print(A)
     B = A[0:(N // 2), 0:(N // 2)].copy()
     C = A[0:(N // 2), (N // 2):N].copy()
-    #print("B = ", B)
-    #print("C = ", C)
     b2 = []
     for index, i in enumerate(B[:len(B) // 2]):
         if index == 0:
             b2.append(i)
         else:
             b2.append(i[index:-index])
-    #print("b2 = ", b2)
     b3 = []
     for index, i in enumerate(B):
         if index < len(B) / 2:
             b3.append(i[-index - 1:])
         else:
             b3.append(i[index:])
-    #print("b3 = ", b3)
-    a = A[(N // 2):N, 0:N].copy()
-    #print("a = ")
-    #print(a)
     G = []
-    for index, i in enumerate(a):
+    for index, i in enumerate(A[(N // 2):N, 0:N]):
         if index == 0:
-            G.append(i[N // 2 - 1])
-            G.append(i[N // 2])
-        #if index < (N // 2) - 1:
+            G.append(i[N // 2 - 1:N // 2 + 1])
         else:
             G.append(i[(N // 2 - index - 1):(N // 2 + index + 1)])
-    print("G = ", G)
     count = 0
     simple_numbers = [2, 3, 5, 7]
     for index, i in enumerate(b2):
@@ -50,46 +40,48 @@ try:
             i = i[1::2]
         for k in simple_numbers:
             count += np.count_nonzero(i == k)
-    #print(count)
     multiplication = -10
     for i in b3:
         if len(i) == 1:
             multiplication *= i[0]
         else:
             multiplication *= i[0] * i[-1]
-    #print(multiplication)
     for index in range(len(B)):
         B[index], C[index] = C[index], np.copy(B[index])
     if count > multiplication:
         B = np.fliplr(B)
         C = np.fliplr(C)
-    #print("B = ", B)
-    #print("C = ", C)
     F = A.copy()
     for i in range(N):
         if i < N / 2:
             F[i] = np.r_[B[i], C[i]]
     print("F = ")
     print(F)
-    #print("LA.det(A)= ", LA.det(A))
-    #trace = np.trace(F)
-    #print("trace = ", np.trace(F))
-    #print('Diagonal (elements): ', np.diagonal(np.asarray(F)))
-    if LA.det(A) == np.trace(F):
+    if la.det(A) == np.trace(F):
         result1 = A * A.transpose()
-        #print("result1 = ", result1)
+        print("result1 = ", result1)
         result2 = K * F
-        #print("result2 = ", result2)
+        print("result2 = ", result2)
         result3 = result1-result2
         print("result3 = ", result3)
     else:
+        for i in range(N):
+            if i < N // 2:
+                G.insert(0, np.zeros(N, dtype=int))
+            else:
+                for j in range(N-np.size(G[i])):
+                    if j <= (N - np.size(G[i])) // 2:
+                        G[i] = np.insert(G[i], 0, 0)
+                    else:
+                        G[i] = np.append(G[i], 0)
+        inverse_A = np.around(np.linalg.inv(A), 2)
+        result1 = inverse_A + G
+        print("result1 = ", result1)
         inverse_F = np.around(np.linalg.inv(F), 2)
-        #result1 = G - inverse_F
-        #print("result1 = ", result1)
-        #result2 = K * F
-        # print("result2 = ", result2)
-        #result3 = result1 - result2
-        #print("result3 = ", result3)
+        result2 = result1 - inverse_F
+        print("result2 = ", result2)
+        result3 = np.around(result2 * K, 2)
+        print("result3 = ", result3)
     finish = time.time()
     result = finish - start
     print("Время выполнения программы: " + str(result) + " секунд.")
